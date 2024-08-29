@@ -39,10 +39,11 @@ class Civitai:
         def __init__(self, civitai):
             self.civitai = civitai
 
-        def create(self, input, wait=False):
+        # CEB changes: rename input to task here to avoid conflict with reserved word
+        def create(self, thing, wait=False):
             async def async_create():
                 try:
-                    validated_input = FromTextSchema(**input)
+                    validated_input = FromTextSchema(**thing)
                 except ValueError as e:
                     raise ValueError(f"Validation error: {str(e)}")
 
@@ -128,7 +129,8 @@ class Civitai:
         def get(self, token=None, job_id=None):
             async def async_get():
                 if token:
-                    response = await get_v1consumerjobs(token, api_config_override=self.civitai)
+                    # CEB 8/29/2024: make get_v1consumerjobs also return jsn
+                    response, jsn = await get_v1consumerjobs(token, api_config_override=self.civitai)
                     modified_response = {
                         "token": response.token,
                         "jobs": [{
@@ -139,7 +141,8 @@ class Civitai:
                         } for job in response.jobs]
                     }
                 elif job_id:
-                    response = await get_v1consumerjobsjobId(job_id, api_config_override=self.civitai)
+                    # CEB 8/29/2024: make get_v1consumerjobs also return jsn
+                    response, jsn = await get_v1consumerjobsjobId(job_id, api_config_override=self.civitai)
                     modified_response = {
                         "jobId": response.jobId,
                         "cost": response.cost,
@@ -150,7 +153,8 @@ class Civitai:
                     raise ValueError(
                         "Either token or job_id must be provided.")
 
-                return modified_response
+                # CEB 8/29/2024: also return jsn
+                return modified_response, jsn
 
             try:
                 loop = asyncio.get_running_loop()

@@ -160,7 +160,17 @@ async def get_v1consumerjobsjobId(
     if response.status_code != 200:
         raise HTTPException(response.status_code, f" failed with status code: {response.status_code}")
 
-    return JobStatusCollection(**response.json()) if response.json() is not None else JobStatusCollection()
+    # print(f"jobId={jobId} response.json(): {str(response.json())}")
+    jsn = response.json() 
+    # ------------------------------------
+    # OLD:
+    #status = JobStatusCollection(**jsn) if jsn is not None else JobStatusCollection()
+    #return JobStatusCollection(**response.json()) if response.json() is not None else JobStatusCollection()
+    # ------------------------------------------------
+    # CEB 8/21/2024: it appears that this should be 
+    status = JobStatus(**jsn) if jsn is not None else JobStatus()
+    # CEB 8/29/2024: also return jsn so we can get the whole story
+    return status, jsn
 
 
 async def put_v1consumerjobsjobId(
